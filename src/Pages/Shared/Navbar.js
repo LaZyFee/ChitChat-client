@@ -1,10 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import LeftNav from './LeftNav';
 import { HiMiniPlusSmall } from "react-icons/hi2";
+import UserListModal from '../../Components/Modals/UserListModal';
+import { fetchUsers } from '../../Services/userService';
 
 const Navbar = () => {
     const user = JSON.parse(localStorage.getItem('user'));
-    console.log(user);
+    const [users, setUsers] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+
+    const handleFetchUsers = async () => {
+        try {
+            console.log('Fetching users...');
+            const token = localStorage.getItem('token');
+            const userList = await fetchUsers(token);
+            console.log('Users:', userList);
+            setUsers(userList);
+            document.getElementById('user_list_modal').showModal();
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    };
+
+    const handleUserClick = (user) => {
+        console.log('Selected user:', user);
+        setSelectedUser(user);
+        document.getElementById('user_list_modal').close(); // Close modal after selection
+    };
 
     return (
         <div className="navbar px-4 py-2 flex justify-between items-center shadow-sm">
@@ -21,7 +43,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Add Button */}
-                <button className="text-pink-500">
+                <button className="text-pink-500" onClick={handleFetchUsers}>
                     <HiMiniPlusSmall className="text-3xl" />
                 </button>
             </div>
@@ -42,6 +64,12 @@ const Navbar = () => {
                     </>
                 )}
             </div>
+
+            {/* Modal for displaying users */}
+            <UserListModal
+                users={users}
+                onUserClick={handleUserClick}
+            />
         </div>
     );
 };

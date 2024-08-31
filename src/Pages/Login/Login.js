@@ -8,6 +8,8 @@ const Login = () => {
         password: '',
     });
 
+    const [loading, setLoading] = useState(false); // Loading state
+
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -16,6 +18,7 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Set loading state to true when form is submitted
 
         const response = await fetch('http://localhost:5000/login', {
             method: 'POST',
@@ -26,6 +29,7 @@ const Login = () => {
         });
 
         const result = await response.json();
+        setLoading(false); // Set loading state to false after the request is completed
 
         if (response.ok) {
             toast.success(result.message);
@@ -40,7 +44,6 @@ const Login = () => {
         }
     };
 
-
     return (
         <div className='h-[600px] flex justify-center items-center'>
             <Toaster />
@@ -49,13 +52,31 @@ const Login = () => {
                 <form onSubmit={handleSubmit}>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Email</label>
-                        <input type="email" name="email" onChange={handleChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="email"
+                            name="email"
+                            onChange={handleChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input during loading
+                        />
                     </div>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Password</label>
-                        <input type="password" name="password" onChange={handleChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="password"
+                            name="password"
+                            onChange={handleChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input during loading
+                        />
                     </div>
-                    <input className='btn btn-accent w-full mt-4' value="Login" type="submit" />
+                    <button
+                        className='btn btn-accent w-full mt-4'
+                        type="submit"
+                        disabled={loading} // Disable button during loading
+                    >
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
                 </form>
                 <p>Don't have an account? <Link className='text-secondary' to="/signup">Sign Up</Link></p>
             </div>

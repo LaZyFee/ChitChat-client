@@ -10,6 +10,7 @@ const Signup = () => {
         password: '',
         image: null,
     });
+    const [loading, setLoading] = useState(false); // Loading state
 
     const navigate = useNavigate();
 
@@ -28,10 +29,12 @@ const Signup = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Start loading
 
         // Client-side validation
         if (!formData.name || !formData.email || !formData.mobile || !formData.password) {
             toast.error("All fields are required");
+            setLoading(false); // Stop loading on validation error
             return;
         }
 
@@ -44,11 +47,12 @@ const Signup = () => {
         });
 
         const result = await response.json();
+
+        setLoading(false); // Stop loading
+
         if (response.ok) {
-            toast.success(result.message);
-            // Save token in localStorage or state
             localStorage.setItem('token', result.token);
-            // Redirect to inbox or another page
+            localStorage.setItem('user', JSON.stringify(result.user));
             navigate('/messages');
         } else {
             toast.error(result.error);
@@ -63,25 +67,61 @@ const Signup = () => {
                 <form onSubmit={handleSubmit}>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Name</label>
-                        <input type="text" name="name" onChange={handleChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="text"
+                            name="name"
+                            onChange={handleChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input while loading
+                        />
                     </div>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Email</label>
-                        <input type="email" name="email" onChange={handleChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="email"
+                            name="email"
+                            onChange={handleChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input while loading
+                        />
                     </div>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Mobile</label>
-                        <input type="text" name="mobile" onChange={handleChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="text"
+                            name="mobile"
+                            onChange={handleChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input while loading
+                        />
                     </div>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Password</label>
-                        <input type="password" name="password" onChange={handleChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="password"
+                            name="password"
+                            onChange={handleChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input while loading
+                        />
                     </div>
                     <div className="form-control w-full max-w-xs">
                         <label className="label">Profile Picture</label>
-                        <input type="file" accept="image/*" onChange={handleImageChange} className="input input-bordered w-full max-w-xs" />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="input input-bordered w-full max-w-xs"
+                            disabled={loading} // Disable input while loading
+                        />
                     </div>
-                    <input className='btn btn-accent w-full mt-4' value="Sign Up" type="submit" />
+                    <button
+                        className='btn btn-accent w-full mt-4'
+                        type="submit"
+                        disabled={loading} // Disable button while loading
+                    >
+                        {loading ? 'Signing Up...' : 'Sign Up'} {/* Show loading text */}
+                    </button>
                 </form>
                 <p>Already have an account? <Link className='text-secondary' to="/login">Please Login</Link></p>
             </div>
