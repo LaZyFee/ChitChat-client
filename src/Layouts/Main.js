@@ -9,7 +9,7 @@ const Main = () => {
     const showInbox = location.pathname === '/';
 
     return (
-        <div className='md:w-10/12 mx-auto my-10'>
+        <div className='md:w-10/12 mx-auto my-5 card max-h-screen'>
             {!hideNavbar && <Navbar />}
             {showInbox ? <Inbox /> : <Outlet />}
         </div>
