@@ -6,18 +6,24 @@ const VantaBackground = () => {
   const vantaRef = useRef(null);
 
   useEffect(() => {
-    const vantaEffect = RINGS({
-      el: vantaRef.current,
-      mouseControls: true,
-      touchControls: true,
-      gyroControls: false,
-      minHeight: 200.00,
-      minWidth: 200.00,
-      scale: 1.00,
-      scaleMobile: 1.00,
-      THREE,
-      backgroundColor: 0x00000000, // Transparent background
-    });
+    let vantaEffect;
+
+    try {
+      vantaEffect = RINGS({
+        el: vantaRef.current,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        THREE,
+        backgroundColor: 0x00000000, // Transparent background
+      });
+    } catch (error) {
+      console.error('Vanta.js initialization error:', error);
+    }
 
     const handleResize = () => {
       if (vantaEffect) {

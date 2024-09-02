@@ -1,23 +1,77 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 
-const users = [
-    { id: 1, name: 'Glen Brahimi', message: 'Mo nua jacket bday pain', avatar: 'link_to_avatar', active: true, timestamp: '2024-08-28T10:30:00Z' },
-    { id: 2, name: 'Roland Dushku', message: 'Had you asked him to ...', avatar: 'link_to_avatar', active: false, timestamp: '2024-08-28T09:15:00Z' },
-    { id: 3, name: 'Rabiul', message: 'Had you asked him to ...', avatar: 'link_to_avatar', active: false, timestamp: '2024-08-28T09:15:00Z' },
-    { id: 4, name: 'Rafee', message: 'Had you asked him to ...', avatar: 'link_to_avatar', active: false, timestamp: '2024-08-28T09:15:00Z' },
-    // Add more users...
-];
+const fetchUsers = async (token) => {
+    const response = await fetch('http://localhost:5000/users', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch users');
+    }
+
+    return response.json();
+};
+
+const fetchChats = async (token) => {
+    const response = await fetch('http://localhost:5000/chat', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch chats');
+    }
+
+    return response.json();
+};
 
 const Users = ({ selectedUser, setSelectedUser }) => {
+    console.log('Users selectedUser:', selectedUser);
+    const [users, setUsers] = useState([]);
+    const [chats, setChats] = useState([]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const fetchAndSetData = async () => {
+            try {
+                const userList = await fetchUsers(token);
+                const chatList = await fetchChats(token);
+
+                const chatUsers = chatList.flatMap(chat => chat.users.map(user => user._id));
+                const filteredUsers = userList.filter(user => chatUsers.includes(user._id));
+
+                setUsers(filteredUsers);
+                setChats(chatList);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchAndSetData();
+    }, []);
+
+    const handleSelectUser = (user) => {
+        setSelectedUser(user);
+    };
+
     return (
         <div className="w-1/3 p-4">
             <ul>
                 {users.map((user) => (
                     <li
-                        key={user.id}
-                        className={`flex items-center space-x-4 p-2 cursor-pointer hover:bg-gray-700 rounded-md ${selectedUser?.id === user.id ? 'bg-gray-700' : ''}`}
-                        onClick={() => setSelectedUser(user)}
+                        key={user._id}
+                        className={`flex items-center space-x-4 p-2 cursor-pointer hover:bg-gray-700 rounded-md ${selectedUser?._id === user._id ? 'bg-gray-700' : ''}`}
+                        onClick={() => handleSelectUser(user)}
                     >
                         <img src={user.avatar} alt="avatar" className="w-12 h-12 rounded-full" />
                         <div>
@@ -30,6 +84,17 @@ const Users = ({ selectedUser, setSelectedUser }) => {
                     </li>
                 ))}
             </ul>
+            <div className="mt-4">
+                <h3 className="text-lg font-semibold">Chats</h3>
+                <ul>
+                    {chats.map((chat) => (
+                        <li key={chat._id} className="p-2 border-b">
+                            <p className="font-semibold">{chat.chatName}</p>
+                            <p className="text-sm text-gray-500">{chat.latestMessage ? chat.latestMessage.content : 'No messages yet'}</p>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 };

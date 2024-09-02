@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../Pages/Shared/Navbar';
-import Inbox from '../Pages/LeftNavPages/Inbox'; // Assuming you have an Inbox component
+import Inbox from '../Pages/LeftNavPages/Inbox';
 
 const Main = () => {
     const location = useLocation();
     const hideNavbar = location.pathname === '/login' || location.pathname === '/signup';
     const showInbox = location.pathname === '/';
 
+    const [selectedUser, setSelectedUser] = useState(null);
+
+    useEffect(() => {
+        console.log('Selected user from Main:', selectedUser);
+    }, [selectedUser]);
+
     return (
         <div className='md:w-10/12 mx-auto my-5 card max-h-screen'>
-            {!hideNavbar && <Navbar />}
-            {showInbox ? <Inbox /> : <Outlet />}
+            {!hideNavbar && <Navbar setSelectedUser={setSelectedUser} />}
+            {showInbox ? <Inbox selectedUser={selectedUser} /> : <Outlet />}
         </div>
     );
 };

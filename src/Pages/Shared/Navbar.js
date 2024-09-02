@@ -3,37 +3,36 @@ import LeftNav from './LeftNav';
 import { HiMiniPlusSmall } from "react-icons/hi2";
 import UserListModal from '../../Components/Modals/UserListModal';
 import { fetchUsers } from '../../Services/userService';
+import { toast } from 'react-hot-toast';
 
-const Navbar = () => {
+const Navbar = ({ setSelectedUser }) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null);
 
     const handleFetchUsers = async () => {
         try {
-            console.log('Fetching users...');
+            toast.loading('Please wait...', { id: 'fetching-users' });
             const token = localStorage.getItem('token');
             const userList = await fetchUsers(token);
-            console.log('Users:', userList);
             setUsers(userList);
+            toast.success('Users fetched successfully!', { id: 'fetching-users' });
             document.getElementById('user_list_modal').showModal();
         } catch (error) {
+            toast.error("Error fetching users.", { id: 'fetching-users' });
             console.error("Error fetching users:", error);
         }
     };
 
     const handleUserClick = (user) => {
-        console.log('Selected user:', user);
-        setSelectedUser(user);
+        console.log('Selected user from navbar:', user);
+        setSelectedUser(user); // Set the selected user in the state
         document.getElementById('user_list_modal').close(); // Close modal after selection
     };
 
     return (
         <div className="navbar px-4 py-2 flex justify-between items-center shadow-sm">
             <div className="flex items-center space-x-4">
-                {/* Left Navigation with Menu Button */}
                 <LeftNav />
-
                 <div className="ml-12">
                     <input
                         type="text"
@@ -41,14 +40,10 @@ const Navbar = () => {
                         className="input input-bordered w-full"
                     />
                 </div>
-
-                {/* Add Button */}
                 <button className="text-pink-500" onClick={handleFetchUsers}>
                     <HiMiniPlusSmall className="text-3xl" />
                 </button>
             </div>
-
-            {/* Right Section with User Info */}
             <div className="flex items-center space-x-4">
                 {user && (
                     <>
@@ -64,11 +59,9 @@ const Navbar = () => {
                     </>
                 )}
             </div>
-
-            {/* Modal for displaying users */}
             <UserListModal
                 users={users}
-                onUserClick={handleUserClick}
+                onUserClick={handleUserClick} // Pass handleUserClick here
             />
         </div>
     );
