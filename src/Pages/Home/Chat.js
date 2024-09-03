@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane } from 'react-icons/fa';
+import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
+
+
 
 const Chat = ({ selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     const fetchMessages = async () => {
       if (!selectedUser) return;
-
-      console.log('Fetching messages for:', selectedUser._id);
 
       try {
         const response = await fetch(`http://localhost:5000/conversations/${selectedUser._id}`, {
@@ -21,8 +23,7 @@ const Chat = ({ selectedUser }) => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('Fetched messages:', data);
-          setMessages(data.messages || []);
+          setMessages(data || []);
         } else {
           console.error('Error fetching messages:', response.statusText);
         }
@@ -34,6 +35,7 @@ const Chat = ({ selectedUser }) => {
     fetchMessages();
   }, [selectedUser]);
 
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
@@ -42,6 +44,7 @@ const Chat = ({ selectedUser }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({ content: message, chatId: selectedUser._id }),
       });
@@ -50,6 +53,7 @@ const Chat = ({ selectedUser }) => {
         const data = await response.json();
         setMessages((prevMessages) => [...prevMessages, data]);
         setMessage('');
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       } else {
         console.error('Error sending message:', response.statusText);
       }
@@ -58,14 +62,18 @@ const Chat = ({ selectedUser }) => {
     }
   };
 
+
   return (
     <div className="flex flex-col h-full w-full">
       {selectedUser ? (
         <>
+          {/* Header */}
           <div className="flex items-center justify-between p-4 text-white shadow-sm">
             <div className="flex items-center">
               <img
-                src={selectedUser.profilePicture}
+                src={selectedUser.profilePicture?.data
+                  ? `data:${selectedUser.profilePicture.contentType};base64,${convertBufferToBase64(selectedUser.profilePicture.data)}`
+                  : '/default-avatar.png'}
                 alt={`${selectedUser.name} profile`}
                 className="w-10 h-10 rounded-full mr-4"
               />
@@ -89,18 +97,23 @@ const Chat = ({ selectedUser }) => {
             </div>
           </div>
 
+          {/* Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index}>
-                  <p className="bg-blue-400 p-2 inline-block rounded-xl">{msg.content}</p>
+                <div key={index} className={`my-2 ${msg.senderId === selectedUser._id ? 'text-left' : 'text-right'}`}>
+                  <p className={`inline-block p-2 rounded-xl ${msg.senderId === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
+                    {msg.content}
+                  </p>
                 </div>
               ))
             ) : (
-              <p className="text-gray-400">No messages yet. Start the conversation!</p>
+              <p className="text-gray-400 text-center my-5">No messages yet. Start the conversation!</p>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
+          {/* Message Input */}
           <div className="p-4 flex items-center space-x-4">
             <button className="p-2 rounded-full hover:bg-gray-700">
               <FaSmile />
@@ -128,4 +141,6 @@ const Chat = ({ selectedUser }) => {
     </div>
   );
 };
+
 export default Chat;
+

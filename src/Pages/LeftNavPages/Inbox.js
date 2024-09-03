@@ -1,16 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Users from '../Home/Users';
 import Chat from '../Home/Chat';
 
-const Inbox = ({ selectedUser }) => {
-    useEffect(() => {
-        console.log('Inbox useEffect:', selectedUser);
-    }, [selectedUser]);
+const Inbox = ({ selectedUser, setSelectedUser }) => {
+    console.log('Inbox selectedUser:', selectedUser, 'setSelected user', setSelectedUser);
 
     return (
         <div className="flex h-screen text-white">
-            <Users selectedUser={selectedUser} />
-            <Chat selectedUser={selectedUser} />
+            <Users selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
+            <Chat selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
         </div>
     );
 };
