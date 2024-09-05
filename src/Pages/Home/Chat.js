@@ -14,10 +14,11 @@ const Chat = ({ selectedUser }) => {
       if (!selectedUser) return;
 
       try {
-        const response = await fetch(`http://localhost:5000/conversations/${selectedUser._id}`, {
+        const response = await fetch(`http://localhost:5000/${selectedUser._id}/conversations`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token here
           },
         });
 
@@ -34,6 +35,7 @@ const Chat = ({ selectedUser }) => {
 
     fetchMessages();
   }, [selectedUser]);
+
 
 
   const sendMessage = async () => {

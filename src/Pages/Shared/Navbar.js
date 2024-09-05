@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LeftNav from './LeftNav';
 import { HiMiniPlusSmall } from "react-icons/hi2";
 import UserListModal from '../../Components/Modals/UserListModal';
@@ -9,24 +9,33 @@ const Navbar = ({ setSelectedUser }) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const [users, setUsers] = useState([]);
 
+    // Fetch users when the component mounts
+    useEffect(() => {
+        const preFetchUsers = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const userList = await fetchUsers(token);
+                setUsers(userList);
+            } catch (error) {
+                console.error("Error pre-fetching users:", error);
+            }
+        };
+
+        preFetchUsers();
+    }, []);
+
     const handleFetchUsers = async () => {
         try {
-            toast.loading('Please wait...', { id: 'fetching-users' });
-            const token = localStorage.getItem('token');
-            const userList = await fetchUsers(token);
-            setUsers(userList);
-            toast.success('Users fetched successfully!', { id: 'fetching-users' });
             document.getElementById('user_list_modal').showModal();
         } catch (error) {
-            toast.error("Error fetching users.", { id: 'fetching-users' });
-            console.error("Error fetching users:", error);
+            toast.error("Error displaying user list.", { id: 'fetching-users' });
+            console.error("Error displaying user list:", error);
         }
     };
 
     const handleUserClick = (user) => {
         setSelectedUser(user); // Set the selected user in the state
         document.getElementById('user_list_modal').close(); // Close modal after selection
-        // console.log('Selected user from navbar:', user);
     };
 
     return (
