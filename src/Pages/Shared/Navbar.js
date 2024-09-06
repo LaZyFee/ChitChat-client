@@ -34,7 +34,7 @@ const Navbar = ({ setSelectedUser }) => {
     };
 
     const handleUserClick = (user) => {
-        setSelectedUser(user); // Set the selected user in the state
+        setSelectedUser(user);
         document.getElementById('user_list_modal').close(); // Close modal after selection
     };
 

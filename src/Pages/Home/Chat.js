@@ -14,7 +14,7 @@ const Chat = ({ selectedUser }) => {
       if (!selectedUser) return;
 
       try {
-        const response = await fetch(`http://localhost:5000/${selectedUser._id}/conversations`, {
+        const response = await fetch(`http://localhost:5000/${selectedUser._id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -41,8 +41,9 @@ const Chat = ({ selectedUser }) => {
   const sendMessage = async () => {
     if (!message.trim()) return;
 
+
     try {
-      const response = await fetch('http://localhost:5000/conversations', {
+      const response = await fetch('http://localhost:5000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +58,8 @@ const Chat = ({ selectedUser }) => {
         setMessage('');
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       } else {
-        console.error('Error sending message:', response.statusText);
+        const errorText = await response.text();
+        console.error('Error sending message:', errorText);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -103,7 +105,7 @@ const Chat = ({ selectedUser }) => {
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className={`my-2 ${msg.senderId === selectedUser._id ? 'text-left' : 'text-right'}`}>
+                <div key={index} className={`my-2 text-white ${msg.senderId === selectedUser._id ? 'text-left' : 'text-right'}`}>
                   <p className={`inline-block p-2 rounded-xl ${msg.senderId === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
                     {msg.content}
                   </p>
@@ -145,4 +147,3 @@ const Chat = ({ selectedUser }) => {
 };
 
 export default Chat;
-

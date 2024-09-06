@@ -25,6 +25,7 @@ const Main = () => {
                 <Users selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
                 <Chat selectedUser={selectedUser} />
             </div>
+
         </div>
     );
 };
