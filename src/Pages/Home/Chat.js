@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane } from 'react-icons/fa';
 import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
 
-
-
 const Chat = ({ selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
@@ -11,14 +9,17 @@ const Chat = ({ selectedUser }) => {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      if (!selectedUser) return;
+      if (!selectedUser) {
+        setMessages([]);
+        return;
+      }
 
       try {
         const response = await fetch(`http://localhost:5000/${selectedUser._id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include the token here
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
         });
 
@@ -27,29 +28,32 @@ const Chat = ({ selectedUser }) => {
           setMessages(data || []);
         } else {
           console.error('Error fetching messages:', response.statusText);
+          setMessages([]);
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
+        setMessages([]);
       }
     };
 
     fetchMessages();
   }, [selectedUser]);
 
-
-
   const sendMessage = async () => {
-    if (!message.trim()) return;
-
+    if (!message.trim() || !selectedUser?._id) return; // Ensure message and selectedUser are defined
 
     try {
-      const response = await fetch('http://localhost:5000/chat', {
+      const response = await fetch('http://localhost:5000/messages', { // Ensure the correct endpoint is used
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ content: message, chatId: selectedUser._id }),
+        body: JSON.stringify({
+          content: message,
+          chatId: selectedUser._id,
+          receiverId: selectedUser._id
+        }),
       });
 
       if (response.ok) {
@@ -66,6 +70,14 @@ const Chat = ({ selectedUser }) => {
     }
   };
 
+
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission or any default action
+      sendMessage();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -130,6 +142,7 @@ const Chat = ({ selectedUser }) => {
               placeholder="Type a message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown} // Add the keyDown handler here
               className="flex-1 p-2 rounded-full bg-gray-700 text-white"
             />
             <button className="p-2 rounded-full hover:bg-gray-700" onClick={sendMessage}>

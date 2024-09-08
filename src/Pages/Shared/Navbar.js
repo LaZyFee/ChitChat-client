@@ -8,16 +8,20 @@ import { toast } from 'react-hot-toast';
 const Navbar = ({ setSelectedUser }) => {
     const user = JSON.parse(localStorage.getItem('user'));
     const [users, setUsers] = useState([]);
+    const [isLoading, setIsLoading] = useState(false); // Loading state
 
     // Fetch users when the component mounts
     useEffect(() => {
         const preFetchUsers = async () => {
             try {
+                setIsLoading(true); // Show loading modal
                 const token = localStorage.getItem('token');
                 const userList = await fetchUsers(token);
                 setUsers(userList);
             } catch (error) {
                 console.error("Error pre-fetching users:", error);
+            } finally {
+                setIsLoading(false); // Hide loading modal
             }
         };
 
@@ -70,8 +74,18 @@ const Navbar = ({ setSelectedUser }) => {
             </div>
             <UserListModal
                 users={users}
-                onUserClick={handleUserClick} // Pass handleUserClick here
+                onUserClick={handleUserClick}
             />
+
+            {/* Loading Modal */}
+            {isLoading && (
+                <dialog open className="modal">
+                    <div className="modal-box flex justify-center items-center">
+                        <span className="loading loading-spinner text-primary"></span>
+                        <p className="ml-4">Loading users...</p>
+                    </div>
+                </dialog>
+            )}
         </div>
     );
 };
