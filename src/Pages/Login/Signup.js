@@ -30,7 +30,7 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true); // Start loading
-
+        // console.log("Form Data:", formData);
         // Client-side validation
         if (!formData.name || !formData.email || !formData.mobile || !formData.password) {
             toast.error("All fields are required");
@@ -47,6 +47,7 @@ const Signup = () => {
         });
 
         const result = await response.json();
+        // console.log("Response:", result);
 
         setLoading(false); // Stop loading
 
