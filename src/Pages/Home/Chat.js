@@ -99,7 +99,7 @@ const Chat = ({ selectedUser }) => {
     if (selectedUser) {
       fetchMessages();
     }
-  }, [selectedUser]);
+  }, [selectedUser, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
