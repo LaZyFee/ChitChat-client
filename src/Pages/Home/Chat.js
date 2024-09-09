@@ -1,11 +1,68 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane } from 'react-icons/fa';
+import { io } from 'socket.io-client';
 import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
+
+const ENDPOINT = 'http://localhost:5000';
+let typingTimeout;
 
 const Chat = ({ selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
+  const [userStatus, setUserStatus] = useState(selectedUser?.active || false); // Default to false
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingMessage, setTypingMessage] = useState('');
+  const socket = useRef(null);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!selectedUser) return; // Exit early if no selectedUser
+
+    socket.current = io(ENDPOINT);
+
+    socket.current.emit('setup', { _id: localStorage.getItem('userId') });
+
+    socket.current.on('connected', () => {
+      console.log('Socket connected');
+    });
+
+    socket.current.on('message received', (newMessage) => {
+      if (newMessage.chat._id === selectedUser._id) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
+    });
+
+    socket.current.on('typing', (typingUser) => {
+      if (typingUser._id === selectedUser._id) {
+        setTypingMessage(`${typingUser.name} is typing...`);
+      }
+    });
+
+    socket.current.on('stop typing', () => {
+      setTypingMessage('');
+    });
+
+    socket.current.on('user online', ({ userId, online }) => {
+      if (selectedUser && selectedUser._id === userId) {
+        setUserStatus(online);
+      }
+    });
+
+    socket.current.on('user offline', ({ userId, online }) => {
+      if (selectedUser && selectedUser._id === userId) {
+        setUserStatus(online);
+      }
+    });
+
+    return () => {
+      socket.current.off('message received');
+      socket.current.off('typing');
+      socket.current.off('stop typing');
+      socket.current.off('user online');
+      socket.current.off('user offline');
+      socket.current.disconnect();
+    };
+  }, [selectedUser]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -43,8 +100,27 @@ const Chat = ({ selectedUser }) => {
     }
   }, [selectedUser]);
 
+  const typingTimeoutRef = useRef(null);
+
+  const handleTyping = () => {
+    if (!isTyping) {
+      setIsTyping(true);
+      socket.current.emit('typing', { _id: localStorage.getItem('userId'), chatId: selectedUser._id });
+    }
+
+    clearTimeout(typingTimeoutRef.current);  // Clear the existing timeout
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      socket.current.emit('stop typing', { _id: localStorage.getItem('userId'), chatId: selectedUser._id });
+    }, 3000);
+  };
+
   const sendMessage = async () => {
-    if (!message.trim() || !selectedUser?._id) return; // Ensure message and selectedUser are defined
+    if (!message.trim() || !selectedUser?._id) return;
+
+    clearTimeout(typingTimeout);
+    setIsTyping(false);
+    socket.current.emit('stop typing', { _id: localStorage.getItem('userId'), chatId: selectedUser._id });
 
     try {
       const response = await fetch('http://localhost:5000/messages', {
@@ -65,19 +141,33 @@ const Chat = ({ selectedUser }) => {
         setMessages((prevMessages) => [...prevMessages, data]);
         setMessage('');
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+        // Emit a new message using the initialized socket
+        socket.current.emit('new message', {
+          chat: {
+            _id: selectedUser._id,
+            users: [selectedUser._id] // Ensure this is an array of user IDs
+          },
+          sender: {
+            _id: localStorage.getItem('userId'), // Assuming sender ID is in localStorage
+          },
+          content: message
+        });
       } else {
-        const errorText = await response.text();
-        console.error('Error sending message:', errorText);
+        console.error('Error sending message:', await response.text());
       }
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       sendMessage();
+    } else {
+      handleTyping();
     }
   };
 
@@ -89,16 +179,17 @@ const Chat = ({ selectedUser }) => {
           <div className="flex items-center justify-between p-4 text-white shadow-sm">
             <div className="flex items-center">
               <img
-                src={selectedUser.profilePicture?.data
+                src={selectedUser?.profilePicture?.data
                   ? `data:${selectedUser.profilePicture.contentType};base64,${convertBufferToBase64(selectedUser.profilePicture.data)}`
                   : '/default-avatar.png'}
                 alt={`${selectedUser.name} profile`}
                 className="w-10 h-10 rounded-full mr-4"
               />
+
               <div>
                 <h2 className="text-lg font-bold">{selectedUser.name}</h2>
-                <p className={`font-semibold ${selectedUser.active ? 'text-green-500' : 'text-red-500'}`}>
-                  {selectedUser.active ? 'Active' : 'Offline'}
+                <p className={`font-semibold ${userStatus ? 'text-green-500' : 'text-red-500'}`}>
+                  {typingMessage ? typingMessage : (userStatus ? 'Active' : 'Offline')}
                 </p>
               </div>
             </div>
@@ -116,20 +207,23 @@ const Chat = ({ selectedUser }) => {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            {messages.length > 0 ? (
-              messages.map((msg, index) => (
-                <div key={index} className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'}`}>
-                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
-                    {msg.content}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400 text-center my-5">No messages yet. Start the conversation!</p>
-            )}
+          <div className="flex-1 p-4 overflow-auto">
+            {messages.map((msg, index) => (
+              <div key={index} className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'}`}>
+                <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
+                  {msg.content}
+                </p>
+              </div>
+            ))}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Typing Indicator */}
+          {typingMessage && (
+            <div className="px-4 py-2 text-sm text-gray-500">
+              {typingMessage}
+            </div>
+          )}
 
           {/* Message Input */}
           <div className="p-4 flex items-center space-x-4">
