@@ -15,19 +15,21 @@ const Chat = ({ selectedUser }) => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/${selectedUser._id}`, {
-          method: 'GET',
+        const token = localStorage.getItem('token');
+        const messageResponse = await fetch('http://localhost:5000/messages/all', {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          setMessages(data || []);
+        if (messageResponse.ok) {
+          const allMessages = await messageResponse.json();
+          const filteredMessages = allMessages.filter(
+            (msg) => msg.sender._id === selectedUser._id || msg.receiver._id === selectedUser._id
+          );
+          setMessages(filteredMessages);
         } else {
-          console.error('Error fetching messages:', response.statusText);
+          console.error('Error fetching messages:', messageResponse.statusText);
           setMessages([]);
         }
       } catch (error) {
@@ -36,14 +38,16 @@ const Chat = ({ selectedUser }) => {
       }
     };
 
-    fetchMessages();
+    if (selectedUser) {
+      fetchMessages();
+    }
   }, [selectedUser]);
 
   const sendMessage = async () => {
     if (!message.trim() || !selectedUser?._id) return; // Ensure message and selectedUser are defined
 
     try {
-      const response = await fetch('http://localhost:5000/messages', { // Ensure the correct endpoint is used
+      const response = await fetch('http://localhost:5000/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +56,7 @@ const Chat = ({ selectedUser }) => {
         body: JSON.stringify({
           content: message,
           chatId: selectedUser._id,
-          receiverId: selectedUser._id
+          receiverId: selectedUser._id,
         }),
       });
 
@@ -70,11 +74,9 @@ const Chat = ({ selectedUser }) => {
     }
   };
 
-
-
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent form submission or any default action
+      e.preventDefault();
       sendMessage();
     }
   };
@@ -117,8 +119,8 @@ const Chat = ({ selectedUser }) => {
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className={`my-2 text-white ${msg.senderId === selectedUser._id ? 'text-left' : 'text-right'}`}>
-                  <p className={`inline-block p-2 rounded-xl ${msg.senderId === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
+                <div key={index} className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'}`}>
+                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
                     {msg.content}
                   </p>
                 </div>
@@ -142,7 +144,7 @@ const Chat = ({ selectedUser }) => {
               placeholder="Type a message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown} // Add the keyDown handler here
+              onKeyDown={handleKeyDown}
               className="flex-1 p-2 rounded-full bg-gray-700 text-white"
             />
             <button className="p-2 rounded-full hover:bg-gray-700" onClick={sendMessage}>
