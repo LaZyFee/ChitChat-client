@@ -16,10 +16,9 @@ const Chat = ({ selectedUser }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    if (!selectedUser) return; // Exit early if no selectedUser
+    if (!selectedUser) return;
 
     socket.current = io(ENDPOINT);
-
     socket.current.emit('setup', { _id: localStorage.getItem('userId') });
 
     socket.current.on('connected', () => {
@@ -27,6 +26,7 @@ const Chat = ({ selectedUser }) => {
     });
 
     socket.current.on('message received', (newMessage) => {
+      console.log('Message received:', newMessage);
       if (newMessage.chat._id === selectedUser._id) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
@@ -85,6 +85,7 @@ const Chat = ({ selectedUser }) => {
             (msg) => msg.sender._id === selectedUser._id || msg.receiver._id === selectedUser._id
           );
           setMessages(filteredMessages);
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         } else {
           console.error('Error fetching messages:', messageResponse.statusText);
           setMessages([]);
@@ -99,6 +100,10 @@ const Chat = ({ selectedUser }) => {
       fetchMessages();
     }
   }, [selectedUser]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const typingTimeoutRef = useRef(null);
 
@@ -142,16 +147,15 @@ const Chat = ({ selectedUser }) => {
         setMessage('');
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-        // Emit a new message using the initialized socket
         socket.current.emit('new message', {
           chat: {
             _id: selectedUser._id,
-            users: [selectedUser._id] // Ensure this is an array of user IDs
+            users: [selectedUser._id],
           },
           sender: {
-            _id: localStorage.getItem('userId'), // Assuming sender ID is in localStorage
+            _id: localStorage.getItem('userId'),
           },
-          content: message
+          content: message,
         });
       } else {
         console.error('Error sending message:', await response.text());
@@ -160,7 +164,6 @@ const Chat = ({ selectedUser }) => {
       console.error('Error sending message:', error);
     }
   };
-
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -208,13 +211,17 @@ const Chat = ({ selectedUser }) => {
 
           {/* Messages */}
           <div className="flex-1 p-4 overflow-auto">
-            {messages.map((msg, index) => (
-              <div key={index} className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'}`}>
-                <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
-                  {msg.content}
-                </p>
-              </div>
-            ))}
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-500 mt-20">No conversation yet!! Please start conversation</div>
+            ) : (
+              messages.map((msg, index) => (
+                <div key={index} className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'}`}>
+                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}>
+                    {msg.content}
+                  </p>
+                </div>
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
 
