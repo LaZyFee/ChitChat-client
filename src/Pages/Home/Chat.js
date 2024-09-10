@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane, FaArrowLeft } from 'react-icons/fa';
+import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane } from 'react-icons/fa';
 import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
 
-const Chat = ({ selectedUser, setShowChatOnMobile }) => {
+const Chat = ({ selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
@@ -76,32 +76,17 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      // Insert a line break if Shift+Enter is pressed
-      if (e.shiftKey) {
-        e.preventDefault();
-        setMessage((prevMessage) => prevMessage + '\n');
-      } else {
-        // Send the message if Enter is pressed without Shift
-        e.preventDefault();
-        sendMessage();
-      }
+      e.preventDefault();
+      sendMessage();
     }
   };
 
-
   return (
-    <div className="h-screen flex flex-col w-screen">
+    <div className="flex flex-col h-full w-full">
       {selectedUser ? (
         <>
           {/* Header */}
-          <div className="flex-none flex items-center justify-between p-4 text-white shadow-sm">
-            {/* Back button for mobile view */}
-            <button
-              className="lg:hidden p-2 rounded-full hover:bg-gray-700"
-              onClick={() => setShowChatOnMobile(false)}
-            >
-              <FaArrowLeft />
-            </button>
+          <div className="flex items-center justify-between p-4 text-white shadow-sm">
             <div className="flex items-center">
               <img
                 src={selectedUser.profilePicture?.data
@@ -110,19 +95,13 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
                 alt={`${selectedUser.name} profile`}
                 className="w-10 h-10 rounded-full mr-4"
               />
-              <div className="flex flex-col">
-                <h2
-                  className="text-lg font-bold truncate max-w-xs" // Restricts width and adds ellipsis
-                  style={{ fontSize: selectedUser.name.length > 15 ? '0.875rem' : '1.125rem' }} // Adjusts font size dynamically
-                >
-                  {selectedUser.name}
-                </h2>
-                <p className={`font-mono ${selectedUser.active ? 'text-green-500' : 'text-red-500'}`}>
+              <div>
+                <h2 className="text-lg font-bold">{selectedUser.name}</h2>
+                <p className={`font-semibold ${selectedUser.active ? 'text-green-500' : 'text-red-500'}`}>
                   {selectedUser.active ? 'Online' : 'Offline'}
                 </p>
               </div>
             </div>
-
             <div className="flex items-center space-x-4">
               <button className="p-2 rounded-full hover:bg-gray-700">
                 <FaPhoneAlt />
@@ -140,14 +119,12 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className={`flex ${msg.sender._id === selectedUser._id ? 'justify-start' : 'justify-end'} my-2 text-white`}>
-                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
-                    style={{ maxWidth: '50%', wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
+                <div key={index} className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'}`}>
+                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400 self-end' : 'bg-green-400 self-start'}`}
+                    style={{ maxWidth: '50%', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                     {msg.content}
                   </p>
                 </div>
-
-
               ))
             ) : (
               <p className="text-gray-400 text-center my-5">No messages yet. Start the conversation!</p>
@@ -156,7 +133,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
           </div>
 
           {/* Message Input */}
-          <div className="flex-none p-4 flex items-center space-x-4">
+          <div className="p-4 flex items-center space-x-4">
             <button className="p-2 rounded-full hover:bg-gray-700">
               <FaSmile />
             </button>
@@ -172,7 +149,6 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
               rows={2}
               style={{ whiteSpace: 'pre-wrap' }}
             />
-
             <button className="p-2 rounded-full hover:bg-gray-700" onClick={sendMessage}>
               <FaPaperPlane />
             </button>
