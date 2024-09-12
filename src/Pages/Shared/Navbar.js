@@ -60,15 +60,40 @@ const Navbar = ({ setSelectedUser }) => {
             <div className="flex items-center space-x-4">
                 {user && (
                     <>
-                        <div className="text-white">
-                            <p className="font-semibold">{user.name}</p>
-                            <p className="text-sm text-green-400">Online</p>
-                        </div>
-                        <div className="avatar">
-                            <div className="w-10 rounded-full ring ring-white ring-offset-base-100 ring-offset-2">
-                                <img src={user.profilePicture} alt="User Avatar" />
+                        <div className="flex items-center space-x-4 text-white">
+                            {/* User Information for Larger Devices */}
+                            <div className="hidden md:block">
+                                <p className="font-semibold">{user.name}</p>
+                                <p className="text-sm text-green-400">Online</p>
+                            </div>
+
+                            {/* Profile Picture for Larger Devices */}
+                            <div className="w-10 h-10 rounded-full ring ring-white ring-offset-base-100 ring-offset-2 overflow-hidden hidden md:block">
+                                <img src={user.profilePicture} alt="User Avatar" className="w-full h-full object-cover" />
+                            </div>
+
+                            {/* Dropdown for Mobile Devices */}
+                            <div className="md:hidden dropdown dropdown-end">
+                                <div
+                                    tabIndex={0}
+                                    role="button"
+                                    className="btn btn-ghost btn-circle avatar w-10 h-10 rounded-full overflow-hidden"
+                                >
+                                    <img src={user.profilePicture} alt="User Avatar" className="w-full h-full object-cover" />
+                                </div>
+                                <ul
+                                    tabIndex={0}
+                                    className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+                                >
+                                    <li>
+                                        <p className="font-semibold">{user.name}</p>
+                                    </li>
+                                    <li><p className="text-sm text-green-400">Online</p></li>
+                                </ul>
                             </div>
                         </div>
+
+
                     </>
                 )}
             </div>

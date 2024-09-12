@@ -115,14 +115,15 @@ const Users = ({ selectedUser, setSelectedUser }) => {
     }, [getLatestMessageTimestamp, loggedInUserId, selectedUser]);
 
     return (
-        <div className="lg:w-1/3 p-2">
+        <div className="lg:w-1/3 p-2 h-screen w-screen ">
             <ul>
                 {users.map((user) => {
                     const latestMessage = getLatestMessage(user._id);
                     return (
                         <li
                             key={user._id}
-                            className={`flex items-center space-x-4 p-2 cursor-pointer hover:bg-gray-700 rounded-md ${selectedUser?._id === user._id ? 'bg-gray-700' : ''}`}
+                            className={`flex items-center space-x-4 p-2 cursor-pointer hover:bg-gray-700 rounded-md ${selectedUser?._id === user._id ? 'lg:bg-gray-700' : ''}`}
+
                             onClick={() => setSelectedUser(user)}
                         >
                             <img
