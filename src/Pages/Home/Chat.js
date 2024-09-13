@@ -7,6 +7,11 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
   const [message, setMessage] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null); // Ref for contentEditable div
+
+  useEffect(() => {
+    console.log("Chat component: Selected user:", selectedUser);
+  }, [selectedUser]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -65,6 +70,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
         const data = await response.json();
         setMessages((prevMessages) => [...prevMessages, data]);
         setMessage('');
+        inputRef.current.innerText = ''; // Clear contentEditable div
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       } else {
         const errorText = await response.text();
@@ -77,12 +83,10 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      // Insert a line break if Shift+Enter is pressed
       if (e.shiftKey) {
         e.preventDefault();
         setMessage((prevMessage) => prevMessage + '\n');
       } else {
-        // Send the message if Enter is pressed without Shift
         e.preventDefault();
         sendMessage();
       }
@@ -90,16 +94,12 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col w-screen h-screen overflow-y-auto">
       {selectedUser ? (
         <>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 text-white shadow-sm">
-            {/* Back button for mobile view */}
-            <button
-              className="lg:hidden p-2 rounded-full hover:bg-gray-700"
-              onClick={() => setShowChatOnMobile(false)}
-            >
+          <div className="flex items-center justify-between p-4 text-white shadow-sm mt-7 lg:mt-0">
+            <button className="lg:hidden p-2 rounded-full hover:bg-gray-700" onClick={() => setShowChatOnMobile(false)}>
               <FaArrowLeft />
             </button>
             <div className="flex items-center">
@@ -116,17 +116,13 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
               />
               <div>
                 <h2 className="text-lg font-bold">
-                  {/* Full name on larger screens */}
                   <span className="hidden md:inline">{selectedUser.name}</span>
-
-                  {/* First and last name on smaller screens */}
                   <span className="inline md:hidden">
                     {selectedUser.name.split(' ').length > 1
                       ? `${selectedUser.name.split(' ')[0]} ${selectedUser.name.split(' ').slice(-1)}`
                       : selectedUser.name}
                   </span>
                 </h2>
-
                 <p className={`font-semibold ${selectedUser.active ? 'text-green-500' : 'text-red-500'}`}>
                   {selectedUser.active ? 'Online' : 'Offline'}
                 </p>
@@ -149,16 +145,9 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`my-2 text-white ${msg.sender._id === selectedUser._id ? 'text-left' : 'text-right'
-                    }`}
-                >
-                  <p
-                    className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'
-                      }`}
-                    style={{ maxWidth: '50%', wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                  >
+                <div key={index} className={`flex ${msg.sender._id === selectedUser._id ? 'justify-start' : 'justify-end'} my-2 text-white`}>
+                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
+                    style={{ maxWidth: '90%', wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
                     {msg.content}
                   </p>
                 </div>
@@ -172,15 +161,14 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
           {/* Message Input */}
           <div className="p-4 flex items-center space-x-4 w-full max-w-4xl mx-auto">
             <div className="relative flex items-center rounded-xl p-2 w-full">
-              {/* Left Icon (FaSmile) */}
               <button className="absolute left-2 p-2 rounded-full hover:bg-gray-600 text-white">
                 <FaSmile />
               </button>
-
-              {/* Content Editable div for typing */}
               <div
+                ref={inputRef}
                 className="flex-1 mx-12 p-2 text-white bg-transparent resize-none outline-none w-full max-w-full"
                 contentEditable
+                suppressContentEditableWarning={true} // Suppress the warning
                 onInput={(e) => setMessage(e.target.innerText)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
@@ -193,8 +181,6 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
                   </div>
                 )}
               </div>
-
-              {/* Right Icon (FaPaperclip) */}
               <button className="absolute right-2 p-2 rounded-full hover:bg-gray-600 text-white">
                 <FaPaperclip />
               </button>

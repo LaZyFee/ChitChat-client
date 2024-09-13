@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CiPower } from "react-icons/ci";
 import { RiMessageLine } from "react-icons/ri";
 import { IoMdPerson } from "react-icons/io";
-import { MdGroups2 } from "react-icons/md";
 import { CiSettings } from "react-icons/ci";
 import { HiMenuAlt2 } from "react-icons/hi";
 import { TbExchange } from "react-icons/tb";
@@ -32,10 +31,10 @@ const LeftNav = () => {
     }, [isOpen]);
 
     return (
-        <div className="relative flex items-center">
+        <div className="relative">
             {/* Menu Button */}
             <button
-                className="text-white"
+                className={`text-white absolute top-4  z-30 ${isOpen ? 'hidden' : ''}`}
                 onClick={toggleDrawer}
             >
                 <HiMenuAlt2 className="text-3xl" />
@@ -53,12 +52,18 @@ const LeftNav = () => {
                 >
                     &times;
                 </button>
-                <div className="flex flex-col justify-between h-full mt-4">
+                <div className="flex flex-col justify-evenly h-full">
                     <div>
                         <ul className="menu p-4">
                             <li>
-                                <Link className="text-2xl m-3" to="/">
-                                    <CiPower /> <p className="text-sm">Logout</p>
+                                <Link className="text-2xl m-3" to="/more">
+                                    <TbExchange /> <p className="text-sm">Change Theme</p>
+                                </Link>
+                            </li>
+
+                            <li>
+                                <Link className="text-2xl m-3" to="/profile">
+                                    <IoMdPerson /> <p className="text-sm">Profile</p>
                                 </Link>
                             </li>
                             <li>
@@ -66,30 +71,22 @@ const LeftNav = () => {
                                     <RiMessageLine /> <p className="text-sm">Inbox</p>
                                 </Link>
                             </li>
-                            <li>
-                                <Link className="text-2xl m-3" to="/profile">
-                                    <IoMdPerson /> <p className="text-sm">Profile</p>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link className="text-2xl m-3" to="/menu">
-                                    <MdGroups2 /> <p className="text-sm">Create Group</p>
-                                </Link>
-                            </li>
+
                         </ul>
                     </div>
                     <div>
-                        <ul className="menu p-4">
+                        <ul className="menu">
                             <li>
                                 <Link className="text-2xl m-3" to="/setting">
                                     <CiSettings /> <p className="text-sm">Setting</p>
                                 </Link>
                             </li>
                             <li>
-                                <Link className="text-2xl m-3" to="/more">
-                                    <TbExchange /> <p className="text-sm">Change Theme</p>
+                                <Link className="text-2xl m-3" to="/">
+                                    <CiPower /> <p className="text-sm">Logout</p>
                                 </Link>
                             </li>
+
                         </ul>
                     </div>
                 </div>

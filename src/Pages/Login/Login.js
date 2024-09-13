@@ -33,10 +33,19 @@ const Login = () => {
 
         if (response.ok) {
             toast.success(result.message);
+
             // Save JWT token in localStorage
             localStorage.setItem('token', result.token);
-            // Save user data in localStorage
-            localStorage.setItem('user', JSON.stringify(result.user));
+
+            // Save user data in localStorage, excluding sensitive information
+            localStorage.setItem('user', JSON.stringify({
+                _id: result.user._id,
+                name: result.user.name,
+                email: result.user.email,
+                mobile: result.user.mobile,
+                profilePicture: result.user.profilePicture,
+            }));
+
             // Redirect to the inbox or another protected route
             navigate('/messages');
         } else {

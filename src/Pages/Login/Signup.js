@@ -30,7 +30,7 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true); // Start loading
-        // console.log("Form Data:", formData);
+
         // Client-side validation
         if (!formData.name || !formData.email || !formData.mobile || !formData.password) {
             toast.error("All fields are required");
@@ -47,13 +47,17 @@ const Signup = () => {
         });
 
         const result = await response.json();
-        // console.log("Response:", result);
-
         setLoading(false); // Stop loading
 
         if (response.ok) {
             localStorage.setItem('token', result.token);
-            localStorage.setItem('user', JSON.stringify(result.user));
+            localStorage.setItem('user', JSON.stringify({
+                _id: result.user._id,
+                name: result.user.name,
+                email: result.user.email,
+                mobile: result.user.mobile,
+                profilePicture: result.user.profilePicture,
+            }));
             navigate('/messages');
         } else {
             toast.error(result.error);

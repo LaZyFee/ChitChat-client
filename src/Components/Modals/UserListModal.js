@@ -1,7 +1,7 @@
 import React from 'react';
 import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
 
-const UserListModal = ({ users, onUserClick, onClose }) => {
+const UserListModal = ({ users, onUserClick }) => {
     return (
         <dialog id="user_list_modal" className="modal">
             <div className="modal-box card">
@@ -10,7 +10,7 @@ const UserListModal = ({ users, onUserClick, onClose }) => {
                     {users.map((u) => (
                         <li
                             key={u._id}
-                            className="py-2 flex items-center cursor-pointer bg-white rounded-lg mb-2 hover:bg-green-500 hover:text-white"
+                            className="py-2 flex items-center cursor-pointer bg-gray-700 rounded-lg mb-2 hover:bg-green-500 hover:text-white"
                             onClick={() => onUserClick(u)}
                         >
                             <div className="avatar mr-4">

@@ -1,18 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Users from '../Home/Users';
 import Chat from '../Home/Chat';
+import Navbar from '../Shared/Navbar';
 
 const Inbox = ({ selectedUser, setSelectedUser }) => {
     const [showChatOnMobile, setShowChatOnMobile] = useState(false); // State to control mobile view
 
-    // Handle selection of a user (for mobile)
     const handleUserSelect = (user) => {
         setSelectedUser(user);
-        setShowChatOnMobile(true); // Show chat in full screen when a user is selected
+        setShowChatOnMobile(true);
     };
+
+    useEffect(() => {
+        console.log("Updated showChatOnMobile:", showChatOnMobile);
+    }, [showChatOnMobile]);
+
+
 
     return (
         <div className="h-screen text-white">
+            {/* Navbar - Only hide on mobile when chat is shown */}
+            <Navbar
+                setSelectedUser={setSelectedUser}
+                showNavbar={!showChatOnMobile || window.innerWidth >= 1024} // Show navbar on desktop or when chat is hidden
+            />
+
             {/* Desktop/Tablet Layout - Users and Chat side by side */}
             <div className="hidden lg:flex h-full">
                 <Users
@@ -28,18 +40,16 @@ const Inbox = ({ selectedUser, setSelectedUser }) => {
             {/* Mobile Layout - Toggle between Users and Chat */}
             <div className="lg:hidden h-full">
                 {showChatOnMobile && selectedUser ? (
-                    // Show Chat full screen if a user is selected
                     <Chat
                         selectedUser={selectedUser}
                         setSelectedUser={setSelectedUser}
-                        setShowChatOnMobile={setShowChatOnMobile}  // Pass for Chat
+                        setShowChatOnMobile={setShowChatOnMobile}
                     />
                 ) : (
-                    // Show Users full screen if no user is selected
                     <Users
                         selectedUser={selectedUser}
                         setSelectedUser={handleUserSelect}
-                        setShowChatOnMobile={setShowChatOnMobile}  // Pass for Users
+                        setShowChatOnMobile={setShowChatOnMobile}
                     />
                 )}
             </div>
