@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane, FaArrowLeft } from 'react-icons/fa';
+import { SlOptionsVertical } from "react-icons/sl";
 import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
 import EmojiPicker from 'emoji-picker-react';
 
@@ -13,6 +14,42 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const [menuVisible, setMenuVisible] = useState(null); // to track which message has an open menu
+  const menuRef = useRef(null); // Ref for context menu
+  const buttonRef = useRef(null); // Ref for the options button
+
+  const toggleMenu = (index) => {
+    // If the menu for the current message is already visible, close it
+    if (menuVisible === index) {
+      setMenuVisible(null); // Close the menu if it's already open
+    } else {
+      setMenuVisible(index); // Open the menu for the clicked message
+    }
+  };
+  const closeMenu = () => {
+    setMenuVisible(null);
+  };
+
+  // useEffect to handle clicks outside of the context menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // If the click is outside the menu or the button, close the menu
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuRef, buttonRef]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -210,19 +247,58 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
               messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex ${msg.sender._id === selectedUser._id ? 'justify-start' : 'justify-end'} my-2 text-white`}
+                  className={`flex ${msg.sender._id === selectedUser._id ? 'justify-start' : 'justify-end'} my-2`}
                 >
-                  <p
-                    className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
-                    style={{
-                      maxWidth: '90%',
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
-                    {msg.content}
-                  </p>
+                  <div style={{ position: 'relative', maxWidth: '70%' }}>
+                    {/* Message Content */}
+                    <p
+                      className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
+                      style={{
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'pre-wrap',
+                        maxWidth: '100%',
+                      }}
+                    >
+                      {msg.content}
+                    </p>
+
+                    {/* Options Button */}
+                    <button
+                      ref={buttonRef}
+                      onClick={() => toggleMenu(index)} // Open menu on click
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: msg.sender._id !== selectedUser._id ? '-30px' : 'auto', // Left for sent messages
+                        right: msg.sender._id === selectedUser._id ? '-30px' : 'auto', // Right for received messages
+                        transform: 'translateY(-50%)',
+                        zIndex: 10,
+                      }}
+                    >
+                      <SlOptionsVertical />
+                    </button>
+
+                    {/* Context Menu */}
+                    {menuVisible === index && (
+                      <div
+                        ref={menuRef} // Add ref for detecting outside clicks
+                        className="absolute z-20 bg-gray-800 text-white rounded-lg shadow-md p-2"
+                        style={{
+                          top: '-100%', // Always show the menu at the top of the message
+                          left: msg.sender._id !== selectedUser._id ? '-120px' : 'auto',
+                          right: msg.sender._id === selectedUser._id ? '-120px' : 'auto',
+                        }}
+                      >
+                        <ul>
+                          <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={closeMenu}>Reply</li>
+                          <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={closeMenu}>Copy</li>
+                          <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={closeMenu}>Forward</li>
+                          <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={closeMenu}>Delete</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (
@@ -230,6 +306,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
             )}
             <div ref={messagesEndRef} />
           </div>
+
 
           <div className="p-4 flex items-center space-x-4 w-full max-w-4xl mx-auto">
             <div className="relative flex items-center rounded-xl p-2 w-full">
