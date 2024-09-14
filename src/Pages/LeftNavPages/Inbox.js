@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Users from '../Home/Users';
 import Chat from '../Home/Chat';
-import Navbar from '../Shared/Navbar';
 
 const Inbox = ({ selectedUser, setSelectedUser }) => {
     const [showChatOnMobile, setShowChatOnMobile] = useState(false); // State to control mobile view
@@ -19,12 +18,6 @@ const Inbox = ({ selectedUser, setSelectedUser }) => {
 
     return (
         <div className="h-screen text-white">
-            {/* Navbar - Only hide on mobile when chat is shown */}
-            <Navbar
-                setSelectedUser={setSelectedUser}
-                showNavbar={!showChatOnMobile || window.innerWidth >= 1024} // Show navbar on desktop or when chat is hidden
-            />
-
             {/* Desktop/Tablet Layout - Users and Chat side by side */}
             <div className="hidden lg:flex h-full">
                 <Users

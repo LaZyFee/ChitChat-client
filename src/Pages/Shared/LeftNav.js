@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CiPower } from "react-icons/ci";
-import { RiMessageLine } from "react-icons/ri";
-import { IoMdPerson } from "react-icons/io";
-import { CiSettings } from "react-icons/ci";
 import { HiMenuAlt2 } from "react-icons/hi";
-import { TbExchange } from "react-icons/tb";
 import { Link } from 'react-router-dom';
+import { TbExchange } from "react-icons/tb";
+import { IoMdPerson } from "react-icons/io";
+import { RiMessageLine } from "react-icons/ri";
+import { CiSettings, CiPower } from "react-icons/ci";
 
 const LeftNav = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -34,7 +33,7 @@ const LeftNav = () => {
         <div className="relative">
             {/* Menu Button */}
             <button
-                className={`text-white absolute top-4  z-30 ${isOpen ? 'hidden' : ''}`}
+                className={`text-white z-30 ${isOpen ? 'hidden' : ''}`}
                 onClick={toggleDrawer}
             >
                 <HiMenuAlt2 className="text-3xl" />
@@ -43,8 +42,7 @@ const LeftNav = () => {
             {/* Drawer */}
             <div
                 ref={drawerRef}
-                className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'
-                    } transition-transform duration-300 ease-in-out z-20`}
+                className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out z-20`}
             >
                 <button
                     className="absolute top-4 right-4 text-white text-2xl"
@@ -71,7 +69,6 @@ const LeftNav = () => {
                                     <RiMessageLine /> <p className="text-sm">Inbox</p>
                                 </Link>
                             </li>
-
                         </ul>
                     </div>
                     <div>
@@ -86,7 +83,6 @@ const LeftNav = () => {
                                     <CiPower /> <p className="text-sm">Logout</p>
                                 </Link>
                             </li>
-
                         </ul>
                     </div>
                 </div>

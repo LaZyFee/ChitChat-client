@@ -70,7 +70,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
         const data = await response.json();
         setMessages((prevMessages) => [...prevMessages, data]);
         setMessage('');
-        inputRef.current.innerText = ''; // Clear contentEditable div
+        inputRef.current.innerText = '';
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       } else {
         const errorText = await response.text();
@@ -94,11 +94,11 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
   };
 
   return (
-    <div className="flex flex-col w-screen h-screen overflow-y-auto">
+    <div className="flex flex-col w-screen h-screen">
       {selectedUser ? (
         <>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 text-white shadow-sm mt-7 lg:mt-0">
+          <div className="flex items-center justify-between p-4 text-white shadow-sm">
             <button className="lg:hidden p-2 rounded-full hover:bg-gray-700" onClick={() => setShowChatOnMobile(false)}>
               <FaArrowLeft />
             </button>
@@ -145,9 +145,19 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className={`flex ${msg.sender._id === selectedUser._id ? 'justify-start' : 'justify-end'} my-2 text-white`}>
-                  <p className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
-                    style={{ maxWidth: '90%', wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
+                <div
+                  key={index}
+                  className={`flex ${msg.sender._id === selectedUser._id ? 'justify-start' : 'justify-end'} my-2 text-white`}
+                >
+                  <p
+                    className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
+                    style={{
+                      maxWidth: '90%', // Max width to prevent bubble from stretching too wide
+                      wordWrap: 'break-word', // Break long words
+                      overflowWrap: 'break-word', // Ensure wrapping for long words or URLs
+                      whiteSpace: 'pre-wrap', // Respect line breaks and spaces
+                    }}
+                  >
                     {msg.content}
                   </p>
                 </div>
