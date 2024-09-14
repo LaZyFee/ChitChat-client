@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiMenuAlt2 } from "react-icons/hi";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { TbExchange } from "react-icons/tb";
 import { IoMdPerson } from "react-icons/io";
 import { RiMessageLine } from "react-icons/ri";
@@ -9,6 +9,7 @@ import { CiSettings, CiPower } from "react-icons/ci";
 const LeftNav = () => {
     const [isOpen, setIsOpen] = useState(false);
     const drawerRef = useRef(null);
+    const navigate = useNavigate(); // Added useNavigate hook
 
     const toggleDrawer = () => {
         setIsOpen(!isOpen);
@@ -28,6 +29,29 @@ const LeftNav = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen]);
+
+    const handleLogout = async () => {
+        try {
+            // Make a request to the logout endpoint
+            await fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if stored in localStorage
+                },
+            });
+
+            // Remove token and user information from localStorage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user'); // Clear the user data
+
+            // Redirect to login page or home page
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
 
     return (
         <div className="relative">
@@ -54,9 +78,9 @@ const LeftNav = () => {
                     <div>
                         <ul className="menu p-4">
                             <li>
-                                <Link className="text-2xl m-3" to="/more">
+                                <button className="text-2xl m-3" to="/more">
                                     <TbExchange /> <p className="text-sm">Change Theme</p>
-                                </Link>
+                                </button>
                             </li>
 
                             <li>
@@ -79,9 +103,12 @@ const LeftNav = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link className="text-2xl m-3" to="/">
+                                <button
+                                    className="text-2xl m-3"
+                                    onClick={handleLogout} // Call handleLogout on click
+                                >
                                     <CiPower /> <p className="text-sm">Logout</p>
-                                </Link>
+                                </button>
                             </li>
                         </ul>
                     </div>

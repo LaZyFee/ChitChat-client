@@ -14,7 +14,7 @@ const Main = () => {
     }, [selectedUser]);
 
     return (
-        <div className='max-h-screen'>
+        <div className='min-h-screen'>
             {!hideNavbar && <Navbar />}
 
             {location.pathname === '/' || location.pathname === '/messages' ? (

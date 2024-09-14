@@ -12,9 +12,10 @@ import FilterModal from '../../Components/Modals/FilterModal';
 
 const Users = ({ selectedUser, setSelectedUser }) => {
     const [users, setUsers] = useState([]);
-    const [filteredUsers, setFilteredUsers] = useState([]); // For search results
-    const [searchTerm, setSearchTerm] = useState(''); // Track search input
-    const [messages, setMessages] = useState([]); // Store fetched messages
+    const [userwithconvo, setUserwithconvo] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -34,7 +35,6 @@ const Users = ({ selectedUser, setSelectedUser }) => {
                 const token = localStorage.getItem('token');
                 const userList = await fetchUsers(token);
                 setUsers(userList);
-                setFilteredUsers(userList); // Initialize filteredUsers with the full list
             } catch (error) {
                 console.error("Error pre-fetching users:", error);
             } finally {
@@ -111,24 +111,25 @@ const Users = ({ selectedUser, setSelectedUser }) => {
                 setMessages(messageData);
 
                 // Extract users with whom conversations exist
-                const uniqueUsers = new Map();  // Map to keep unique users
+                const uniqueUserObj = {};
+
                 messageData.forEach(message => {
                     const { sender, receiver } = message;
-                    if (sender && sender._id !== loggedInUserId) {
-                        uniqueUsers.set(sender._id, sender);
-                    }
-                    if (receiver && receiver._id !== loggedInUserId) {
-                        uniqueUsers.set(receiver._id, receiver);
+                    if (sender && sender._id === loggedInUserId) {
+                        uniqueUserObj[receiver._id] = receiver;
+                    } else if (receiver && receiver._id === loggedInUserId) {
+                        uniqueUserObj[sender._id] = sender;
                     }
                 });
 
-                // Filter and sort users based on messages
-                const usersWithMessages = [...uniqueUsers.values()].map(user => {
+                const filteredUsers = users.filter(user => uniqueUserObj[user._id]);
+
+                const usersWithTimestamp = filteredUsers.map(user => {
                     const latestTimestamp = getLatestMessageTimestamp(user._id);
                     return { ...user, latestTimestamp };
                 });
 
-                setFilteredUsers(sortUsersByLatestMessage(usersWithMessages));
+                setUserwithconvo(sortUsersByLatestMessage(usersWithTimestamp));
             } catch (error) {
                 console.error('Error fetching users or messages:', error);
             }
@@ -196,7 +197,7 @@ const Users = ({ selectedUser, setSelectedUser }) => {
             </div>
 
             <ul>
-                {filteredUsers.map((user) => {
+                {userwithconvo.map((user) => {
                     const latestMessage = getLatestMessage(user._id);
                     return (
                         <li

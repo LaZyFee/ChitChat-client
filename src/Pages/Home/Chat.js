@@ -1,17 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaPhoneAlt, FaVideo, FaEllipsisV, FaSmile, FaPaperclip, FaPaperPlane, FaArrowLeft } from 'react-icons/fa';
 import convertBufferToBase64 from '../../Utils/convertBufferToBase64';
+import EmojiPicker from 'emoji-picker-react';
 
 const Chat = ({ selectedUser, setShowChatOnMobile }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null); // Ref for contentEditable div
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
+  const [attachments, setAttachments] = useState([]);
 
-  useEffect(() => {
-    console.log("Chat component: Selected user:", selectedUser);
-  }, [selectedUser]);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -34,6 +39,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
             (msg) => msg.sender._id === selectedUser._id || msg.receiver._id === selectedUser._id
           );
           setMessages(filteredMessages);
+          scrollToBottom();
         } else {
           console.error('Error fetching messages:', response.statusText);
           setMessages([]);
@@ -48,6 +54,10 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
       fetchMessages();
     }
   }, [selectedUser]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!message.trim() || !selectedUser?._id) return;
@@ -71,7 +81,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
         setMessages((prevMessages) => [...prevMessages, data]);
         setMessage('');
         inputRef.current.innerText = '';
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        scrollToBottom();
       } else {
         const errorText = await response.text();
         console.error('Error sending message:', errorText);
@@ -93,13 +103,67 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
     }
   };
 
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    const formData = new FormData();
+
+    files.forEach((file) => {
+      formData.append('attachments', file);
+    });
+
+    try {
+      const response = await fetch('http://localhost:5000/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (response.ok) {
+        const { fileUrls } = await response.json();
+        setAttachments((prev) => [...prev, ...fileUrls]);
+        setMessage((prevMessage) => `${prevMessage} ${fileUrls.join(' ')}`);
+        setShowAttachmentOptions(false);
+      } else {
+        console.error('Error uploading files:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+    }
+  };
+
+  const handleEmojiClick = (emojiObject) => {
+    const emoji = emojiObject.emoji;
+    const input = inputRef.current;
+
+    if (input) {
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+
+      const textNode = document.createTextNode(emoji);
+      range.deleteContents();
+      range.insertNode(textNode);
+
+      range.setStartAfter(textNode);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      setMessage(input.innerText);
+      setShowEmojiPicker(false);
+    }
+  };
+
   return (
     <div className="flex flex-col w-screen h-screen">
       {selectedUser ? (
         <>
-          {/* Header */}
           <div className="flex items-center justify-between p-4 text-white shadow-sm">
-            <button className="lg:hidden p-2 rounded-full hover:bg-gray-700" onClick={() => setShowChatOnMobile(false)}>
+            <button
+              className="lg:hidden p-2 rounded-full hover:bg-gray-700"
+              onClick={() => setShowChatOnMobile(null)}
+            >
               <FaArrowLeft />
             </button>
             <div className="flex items-center">
@@ -141,7 +205,6 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
             </div>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
@@ -152,10 +215,10 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
                   <p
                     className={`inline-block p-2 rounded-xl ${msg.sender._id === selectedUser._id ? 'bg-blue-400' : 'bg-green-400'}`}
                     style={{
-                      maxWidth: '90%', // Max width to prevent bubble from stretching too wide
-                      wordWrap: 'break-word', // Break long words
-                      overflowWrap: 'break-word', // Ensure wrapping for long words or URLs
-                      whiteSpace: 'pre-wrap', // Respect line breaks and spaces
+                      maxWidth: '90%',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      whiteSpace: 'pre-wrap',
                     }}
                   >
                     {msg.content}
@@ -168,17 +231,26 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Message Input */}
           <div className="p-4 flex items-center space-x-4 w-full max-w-4xl mx-auto">
             <div className="relative flex items-center rounded-xl p-2 w-full">
-              <button className="absolute left-2 p-2 rounded-full hover:bg-gray-600 text-white">
+              <button
+                className="absolute left-2 p-2 rounded-full hover:bg-gray-600 text-white"
+                onClick={() => setShowEmojiPicker((prev) => !prev)}
+              >
                 <FaSmile />
               </button>
+
+              {showEmojiPicker && (
+                <div className="absolute bottom-12 left-0">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
+
               <div
                 ref={inputRef}
                 className="flex-1 mx-12 p-2 text-white bg-transparent resize-none outline-none w-full max-w-full"
                 contentEditable
-                suppressContentEditableWarning={true} // Suppress the warning
+                suppressContentEditableWarning={true}
                 onInput={(e) => setMessage(e.target.innerText)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
@@ -191,9 +263,48 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
                   </div>
                 )}
               </div>
-              <button className="absolute right-2 p-2 rounded-full hover:bg-gray-600 text-white">
+
+              <button
+                className="absolute right-2 p-2 rounded-full hover:bg-gray-600 text-white"
+                onClick={() => setShowAttachmentOptions((prev) => !prev)}
+              >
                 <FaPaperclip />
               </button>
+
+              {showAttachmentOptions && (
+                <div className="absolute bottom-12 right-0 bg-gray-800 p-2 rounded-md">
+                  <label className="block p-2 text-sm hover:bg-gray-600 rounded-md cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      multiple
+                      onChange={handleFileChange}
+                    />
+                    Attach Images
+                  </label>
+                  <label className="block p-2 text-sm hover:bg-gray-600 rounded-md cursor-pointer">
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="hidden"
+                      multiple
+                      onChange={handleFileChange}
+                    />
+                    Attach Audio
+                  </label>
+                  <label className="block p-2 text-sm hover:bg-gray-600 rounded-md cursor-pointer">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      multiple
+                      onChange={handleFileChange}
+                    />
+                    Attach Videos
+                  </label>
+                </div>
+              )}
             </div>
 
             <button className="p-2 rounded-full hover:bg-gray-700" onClick={sendMessage}>
