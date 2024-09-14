@@ -1,13 +1,13 @@
 import React from 'react';
 import LeftNav from '../../Pages/Shared/LeftNav';
 
-const Navbar = () => {
+const Navbar = ({ onChangeTheme }) => {
     const user = JSON.parse(localStorage.getItem('user'));
 
     return (
         <div className="navbar px-4 py-2 shadow-sm flex items-center justify-between">
             <div className="flex items-center space-x-6">
-                <LeftNav />
+                <LeftNav onChangeTheme={onChangeTheme} />
                 <h1 className="text-3xl font-bold">ChitChat</h1>
             </div>
 

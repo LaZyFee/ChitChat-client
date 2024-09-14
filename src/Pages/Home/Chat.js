@@ -10,6 +10,7 @@ const Chat = ({ selectedUser, setShowChatOnMobile }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [attachments, setAttachments] = useState([]);
 
   const messagesEndRef = useRef(null);

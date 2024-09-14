@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { HiMenuAlt2 } from "react-icons/hi";
-import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
-import { TbExchange } from "react-icons/tb";
-import { IoMdPerson } from "react-icons/io";
-import { RiMessageLine } from "react-icons/ri";
-import { CiSettings, CiPower } from "react-icons/ci";
+import { HiMenuAlt2 } from 'react-icons/hi';
+import { Link, useNavigate } from 'react-router-dom';
+import { TbExchange } from 'react-icons/tb';
+import { IoMdPerson } from 'react-icons/io';
+import { RiMessageLine } from 'react-icons/ri';
+import { CiSettings, CiPower } from 'react-icons/ci';
 
-const LeftNav = () => {
+const LeftNav = ({ onChangeTheme }) => { // Accept onChangeTheme prop here
     const [isOpen, setIsOpen] = useState(false);
     const drawerRef = useRef(null);
-    const navigate = useNavigate(); // Added useNavigate hook
+    const navigate = useNavigate();
 
     const toggleDrawer = () => {
         setIsOpen(!isOpen);
@@ -32,41 +32,33 @@ const LeftNav = () => {
 
     const handleLogout = async () => {
         try {
-            // Make a request to the logout endpoint
             await fetch('/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`, // Include token if stored in localStorage
+                    Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token if stored in localStorage
                 },
             });
-
-            // Remove token and user information from localStorage
             localStorage.removeItem('token');
-            localStorage.removeItem('user'); // Clear the user data
-
-            // Redirect to login page or home page
+            localStorage.removeItem('user');
             navigate('/login');
         } catch (error) {
             console.error('Logout error:', error);
         }
     };
 
-
     return (
         <div className="relative">
-            {/* Menu Button */}
             <button
                 className={`text-white z-30 ${isOpen ? 'hidden' : ''}`}
                 onClick={toggleDrawer}
             >
                 <HiMenuAlt2 className="text-3xl" />
             </button>
-
-            {/* Drawer */}
             <div
                 ref={drawerRef}
-                className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out z-20`}
+                className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                    } transition-transform duration-300 ease-in-out z-20`}
             >
                 <button
                     className="absolute top-4 right-4 text-white text-2xl"
@@ -78,11 +70,10 @@ const LeftNav = () => {
                     <div>
                         <ul className="menu p-4">
                             <li>
-                                <button className="text-2xl m-3" to="/more">
+                                <button className="text-2xl m-3" onClick={onChangeTheme}> {/* Call onChangeTheme here */}
                                     <TbExchange /> <p className="text-sm">Change Theme</p>
                                 </button>
                             </li>
-
                             <li>
                                 <Link className="text-2xl m-3" to="/profile">
                                     <IoMdPerson /> <p className="text-sm">Profile</p>
@@ -103,10 +94,7 @@ const LeftNav = () => {
                                 </Link>
                             </li>
                             <li>
-                                <button
-                                    className="text-2xl m-3"
-                                    onClick={handleLogout} // Call handleLogout on click
-                                >
+                                <button className="text-2xl m-3" onClick={handleLogout}>
                                     <CiPower /> <p className="text-sm">Logout</p>
                                 </button>
                             </li>
