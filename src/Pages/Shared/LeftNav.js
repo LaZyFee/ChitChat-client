@@ -32,11 +32,11 @@ const LeftNav = ({ onChangeTheme }) => { // Accept onChangeTheme prop here
 
     const handleLogout = async () => {
         try {
-            await fetch('/logout', {
+            await fetch('http://localhost:5000/logout', {  // Adjust the URL to match your backend server's URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token if stored in localStorage
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             });
             localStorage.removeItem('token');
@@ -46,6 +46,7 @@ const LeftNav = ({ onChangeTheme }) => { // Accept onChangeTheme prop here
             console.error('Logout error:', error);
         }
     };
+
 
     return (
         <div className="relative">

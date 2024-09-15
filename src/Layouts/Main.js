@@ -15,9 +15,6 @@ const Main = () => {
     return (
         <div className='min-h-screen'>
             {!hideNavbar && <Navbar onChangeTheme={handleEffectChange} />}
-
-
-
             {location.pathname === '/' || location.pathname === '/messages' ? (
                 <Inbox selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
             ) : (

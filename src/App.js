@@ -19,7 +19,7 @@ function App() {
 
   return (
     <EffectContext.Provider value={{ currentEffect, handleEffectChange }}>
-      <div>
+      <div className='max-w-[1440px] mx-auto'>
         <VantaBackground effect={currentEffect} />
         <RouterProvider router={router} />
         <Toaster />
